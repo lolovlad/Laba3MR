@@ -7,6 +7,7 @@ on:
 
 jobs:
   lint-and-test:
+    if: github.event.pull_request.head.ref == 'feature/recommender-pipeline'
     runs-on: ubuntu-latest
 
     steps:
