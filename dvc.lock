@@ -1,0 +1,38 @@
+schema: '2.0'
+stages:
+  generate:
+    cmd: poetry run python -m src.data.generate_data
+    deps:
+    - path: src/data/generate_data.py
+      hash: md5
+      md5: 6befe62c405f1f337ce142e03a6ea1fa
+      size: 1880
+    outs:
+    - path: data/raw/interactions.csv
+      hash: md5
+      md5: ccb89dbe7b2d9fe3c843e941a1ba412f
+      size: 34837
+    - path: data/raw/items.csv
+      hash: md5
+      md5: 317fd738506f90bfd14fe7f9f0ab8e73
+      size: 631
+  train:
+    cmd: poetry run python -m src.ml.train
+    deps:
+    - path: data/raw/interactions.csv
+      hash: md5
+      md5: ccb89dbe7b2d9fe3c843e941a1ba412f
+      size: 34837
+    - path: src/ml/train.py
+      hash: md5
+      md5: 24068780d161931355bdd394b61aa984
+      size: 1780
+    outs:
+    - path: models/metrics.json
+      hash: md5
+      md5: 368b210e88e8d14dc0a339c42d507e5b
+      size: 60
+    - path: models/recommender.joblib
+      hash: md5
+      md5: 5dd34c1b9601da0949e941be6826307b
+      size: 91773

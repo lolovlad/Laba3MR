@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.dvc/cache
+notebooks/.ipynb_checkpoints

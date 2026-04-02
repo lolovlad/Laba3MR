@@ -26,6 +26,7 @@ data/processed/
 models/*.joblib
 models/*.pkl
 models/*.onnx
+models/*.json
 *.ipynb_checkpoints
 
 # DVC cache

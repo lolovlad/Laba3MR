@@ -33,3 +33,9 @@ jobs:
 
       - name: Run tests
         run: poetry run pytest -q
+
+      - name: Validate docker-compose
+        run: docker compose config -q
+
+      - name: Build Docker image
+        run: docker build -t laba3mr-app:ci .
