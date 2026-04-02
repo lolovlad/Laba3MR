@@ -1,0 +1,16 @@
+stages:
+  generate:
+    cmd: poetry run python -m src.data.generate_data
+    deps:
+      - src/data/generate_data.py
+    outs:
+      - data/raw/interactions.csv
+      - data/raw/items.csv
+  train:
+    cmd: poetry run python -m src.ml.train
+    deps:
+      - data/raw/interactions.csv
+      - src/ml/train.py
+    outs:
+      - models/recommender.joblib
+      - models/metrics.json
