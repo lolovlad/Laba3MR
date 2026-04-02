@@ -14,4 +14,4 @@ ENV PYTHONUNBUFFERED=1
 COPY --from=builder /usr/local /usr/local
 COPY . .
 EXPOSE 8000
-CMD ["poetry", "run", "uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

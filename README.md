@@ -1,6 +1,6 @@
 # Laba 3: Recommendation mini-project (Poetry + FastAPI + DVC + Docker + CI/CD)
 
-[![build passing](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/USERNAME/REPO/actions)
+[![build passing](https://github.com/lolovlad/Laba3MR/actions/workflows/ci.yml/badge.svg)](https://github.com/lolovlad/Laba3MR/actions/workflows/ci.yml)
 
 Камерный pet-проект под лабораторную:
 - задача рекомендаций (synthetic interactions)
@@ -88,6 +88,42 @@ poetry run dvc push
 poetry run dvc status -c
 ```
 
+### Как добавить новую версию данных через DVC
+
+Если данные изменились (новая выгрузка, новая генерация, изменения препроцессинга), делай так:
+
+1. Обнови данные локально:
+```bash
+poetry run python -m src.data.generate_data
+```
+
+2. Пересчитай pipeline и обнови `dvc.lock`:
+```bash
+poetry run dvc repro
+```
+
+3. Отправь новую версию данных/артефактов в remote (MinIO):
+```bash
+poetry run dvc push
+```
+
+4. Зафиксируй изменения метаданных в Git:
+```bash
+git add dvc.lock dvc.yaml .dvc/config
+git commit -m "data: update dataset version"
+git push
+```
+
+Важно:
+- в Git коммитятся **только** DVC-метафайлы (`dvc.lock`, `dvc.yaml`, `.dvc/*.dvc`, конфиги),
+- сами большие данные и модели хранятся в DVC remote (MinIO), а не в Git.
+
+Как откатиться к старой версии данных:
+```bash
+git checkout <commit_with_old_dvc_lock>
+poetry run dvc pull
+```
+
 ## 5. Запуск API локально
 
 ```bash
@@ -144,6 +180,8 @@ Workflow: `.github/workflows/ci.yml`
 2. `poetry run black --check src tests`
 3. `poetry run flake8 src tests`
 4. `poetry run pytest -q`
+5. `docker compose config -q` (проверка compose-конфига)
+6. `docker build -t laba3mr-app:ci .` (проверка сборки контейнера)
 
 ## 9. Пошаговая проверка перед сдачей
 
@@ -151,10 +189,19 @@ Workflow: `.github/workflows/ci.yml`
 2. `docker compose up -d minio minio-init`
 3. `poetry run dvc repro && poetry run dvc push`
 4. `poetry run pytest -q`
-5. `docker compose up --build` и проверить `/docs`
-6. создать PR `feature/* -> develop`, убедиться что GitHub Actions зеленый
+5. `docker compose config -q`
+6. `docker compose up --build` и проверить `/docs`
+7. создать PR `feature/* -> develop`, убедиться что GitHub Actions зеленый
 
-## 10. Обновить бейдж перед сдачей
 
-Заменить ссылку в `README` на реальную:
-`https://github.com/<user>/<repo>/actions/workflows/ci.yml/badge.svg`
+
+
+## 1. Почему мы используем DVC, а не просто храним данные в Git LFS?
+Мы используем DVC вместо Git LFS, потому что DVC лучше подходит для работы с данными в ML-проектах. Git LFS в основном просто хранит большие файлы в репозитории, но не управляет их версиями на уровне пайплайнов и не отслеживает связи между данными, моделями и экспериментами. DVC позволяет не только хранить данные отдельно от Git, но и описывать этапы обработки данных и обучения моделей, что делает весь процесс более структурированным и воспроизводимым.
+
+## 2. Как обеспечить воспроизводимость эксперимента через полгода?
+Воспроизводимость эксперимента через длительное время обеспечивается за счёт фиксации всех ключевых компонентов проекта. Для этого сохраняются версии данных, кода, зависимостей и параметров модели. Также используются инструменты вроде DVC и виртуальных окружений, которые позволяют восстановить точно такую же среду, в которой проводился эксперимент. Это позволяет заново запустить обучение модели и получить сопоставимый результат даже спустя несколько месяцев.
+
+
+## 3. Что произойдет с CI/CD пайплайном при падении тестов?
+При падении тестов CI/CD пайплайн останавливается на этапе проверки и не допускает дальнейшее развертывание или публикацию изменений. Это сделано для того, чтобы в основную ветку не попадал нерабочий или нестабильный код. В таком случае разработчики получают уведомление о сбое, исправляют ошибки и повторно запускают pipeline после внесения изменений.
