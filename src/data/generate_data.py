@@ -12,7 +12,7 @@ def generate_data(
     num_users: int = 80,
     num_items: int = 60,
     interactions_per_user: int = 18,
-    seed: int = 40,
+    seed: int = 25,
 ) -> None:
     rng = np.random.default_rng(seed)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
